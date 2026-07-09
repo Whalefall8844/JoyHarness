@@ -25,15 +25,15 @@ def get_permission_warning() -> str:
     """Return a user-facing warning message for missing permissions."""
     if sys.platform == "win32":
         return (
-            "WARNING: Not running as administrator. Keyboard simulation may not work.\n"
-            "         Try: run.bat  or  run as admin in PowerShell\n"
+            "警告：当前没有以管理员身份运行，键盘模拟可能无法生效。\n"
+            "      可尝试使用 run.bat，或在管理员 PowerShell 中启动。\n"
         )
     elif sys.platform == "darwin":
         return (
-            "WARNING: Accessibility permission not granted.\n"
-            "         Go to: System Settings → Privacy & Security → Accessibility\n"
-            "         Add your terminal app (e.g. Terminal, iTerm2) to the allowed list.\n"
-            "         Then restart JoyHarness.\n"
+            "警告：尚未授予辅助功能权限。\n"
+            "      请前往：系统设置 → 隐私与安全性 → 辅助功能\n"
+            "      将当前终端应用（如 Terminal、iTerm2）加入允许列表。\n"
+            "      然后重启 JoyHarness。\n"
         )
     return ""
 

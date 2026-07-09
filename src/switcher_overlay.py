@@ -9,6 +9,7 @@ to marshal calls to the main thread.
 
 from __future__ import annotations
 
+import queue
 import sys
 import tkinter as tk
 import logging
@@ -30,6 +31,8 @@ class SwitcherOverlay:
         self._windows: list[WindowInfo] = []
         self._selected_index: int = 0
         self._visible: bool = False
+        self._closed: bool = False
+        self._ui_queue: queue.Queue[Callable] = queue.Queue()
 
         self._overlay = tk.Toplevel(root)
         self._overlay.overrideredirect(True)
@@ -64,13 +67,33 @@ class SwitcherOverlay:
         self._list_frame.pack(fill="both", expand=True, padx=4, pady=(4, 8))
 
         self._labels: list[tk.Label] = []
+        self._root_tk.after(20, self._drain_queue)
 
     def _schedule(self, func: Callable) -> None:
         """Schedule a function to run on the main thread."""
+        if self._closed:
+            return
+        self._ui_queue.put(func)
+
+    def _drain_queue(self) -> None:
+        """Run queued UI callbacks on the tkinter main thread."""
         try:
-            self._root_tk.after(0, func)
-        except RuntimeError:
-            pass  # tkinter already destroyed
+            while True:
+                func = self._ui_queue.get_nowait()
+                try:
+                    func()
+                except (RuntimeError, tk.TclError):
+                    logger.debug("Overlay update skipped because tkinter is unavailable", exc_info=True)
+                except Exception:
+                    logger.exception("Overlay update failed")
+        except queue.Empty:
+            pass
+
+        try:
+            self._root_tk.after(20, self._drain_queue)
+        except (RuntimeError, tk.TclError):
+            self._closed = True
+            logger.debug("Overlay queue stopped because tkinter is unavailable", exc_info=True)
 
     def show(self, windows: list[WindowInfo], initial_index: int = 0) -> None:
         """Show the overlay (thread-safe)."""

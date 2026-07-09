@@ -16,6 +16,7 @@ from ttkbootstrap.constants import (
 from ttkbootstrap.dialogs import Messagebox
 
 from .key_mapper import KeyMapper
+from .labels import action_choices, action_label, action_value, button_label, mode_label
 from .resizable import ResizableMixin
 from .window_switcher import WindowCycler, KNOWN_APPS, set_known_apps
 
@@ -25,6 +26,16 @@ EDITABLE_ACTIONS = ("tap", "hold", "auto", "combination", "sequence", "window_sw
 MAPPABLE_BUTTONS = ("A", "B", "X", "Y", "R", "ZR", "Plus", "Home", "RStick", "SL", "SR")
 
 _UI_FONT = "Helvetica" if sys.platform == "darwin" else "Microsoft YaHei UI"
+
+
+def _mappable_buttons_for_mode(mode: str) -> tuple[str, ...]:
+    from .constants import MAPPABLE_BUTTONS_BY_MODE
+
+    return MAPPABLE_BUTTONS_BY_MODE.get(mode, MAPPABLE_BUTTONS)
+
+
+def _app_target_help_text(mode: str) -> str:
+    return "设置窗口切换可在哪些应用间切换："
 
 
 class SettingsWindow(ResizableMixin):
@@ -115,12 +126,10 @@ class SettingsWindow(ResizableMixin):
     # --- Tab 1: Button mappings ---
 
     def _build_mapping_tab(self, parent: ttk.Frame) -> None:
-        from .constants import MAPPABLE_BUTTONS_BY_MODE, MODE_LABELS
-
         # Header
         header = ttk.Frame(parent)
         header.pack(fill=X, pady=(0, 4))
-        ttk.Label(header, text="按钮", font=(_UI_FONT, 9, "bold"), width=8).pack(side=LEFT)
+        ttk.Label(header, text="按钮", font=(_UI_FONT, 9, "bold"), width=12).pack(side=LEFT)
         ttk.Label(
             header, text="动作类型",
             font=(_UI_FONT, 9, "bold"), width=14,
@@ -131,7 +140,7 @@ class SettingsWindow(ResizableMixin):
         ).pack(side=LEFT, padx=(8, 0))
 
         # Show which profile is being edited
-        profile_label = MODE_LABELS.get(self._mode, self._mode)
+        profile_label = mode_label(self._mode)
         ttk.Label(
             header, text=f"[{profile_label}]",
             font=(_UI_FONT, 9), bootstyle="info",
@@ -142,7 +151,7 @@ class SettingsWindow(ResizableMixin):
         rows_frame = ttk.Frame(parent)
         rows_frame.pack(fill=BOTH, expand=True)
 
-        mappable_buttons = MAPPABLE_BUTTONS_BY_MODE.get(self._mode, ())
+        mappable_buttons = _mappable_buttons_for_mode(self._mode)
         mappings = self._config.get("mappings", {}).get("buttons", {})
         for btn_name in mappable_buttons:
             self._add_button_row(rows_frame, btn_name, mappings.get(btn_name, {}))
@@ -151,12 +160,12 @@ class SettingsWindow(ResizableMixin):
         row = ttk.Frame(parent)
         row.pack(fill=X, pady=2)
 
-        ttk.Label(row, text=btn_name, font=(_UI_FONT, 10), width=8).pack(side=LEFT)
+        ttk.Label(row, text=button_label(btn_name), font=(_UI_FONT, 10), width=12).pack(side=LEFT)
 
         current_action = mapping.get("action", "tap")
-        action_var = ttk.StringVar(value=current_action)
+        action_var = ttk.StringVar(value=action_label(current_action))
         action_cb = ttk.Combobox(
-            row, textvariable=action_var, values=EDITABLE_ACTIONS,
+            row, textvariable=action_var, values=action_choices(EDITABLE_ACTIONS),
             state="readonly", width=12, bootstyle=INFO,
         )
         action_cb.pack(side=LEFT, padx=(8, 0))
@@ -171,7 +180,7 @@ class SettingsWindow(ResizableMixin):
         key_entry = ttk.Entry(row, textvariable=key_var, width=14, bootstyle=SECONDARY)
 
         def on_action_change(event=None):
-            action = action_var.get()
+            action = action_value(action_var.get())
             if action == "window_switch":
                 key_entry.configure(state=DISABLED)
                 key_var.set("")
@@ -187,7 +196,7 @@ class SettingsWindow(ResizableMixin):
         if current_action == "window_switch":
             key_entry.configure(state=DISABLED)
         elif current_action == "macro":
-            action_var.set(current_action)
+            action_var.set(action_label(current_action))
             action_cb.configure(state=DISABLED)
             key_entry.configure(state=DISABLED)
 
@@ -205,7 +214,7 @@ class SettingsWindow(ResizableMixin):
     def _build_apps_tab(self, parent: ttk.Frame) -> None:
         ttk.Label(
             parent,
-            text="设置 R 键可在哪些应用间切换窗口：",
+            text=_app_target_help_text(self._mode),
             font=(_UI_FONT, 10),
         ).pack(anchor=W, pady=(0, 8))
 
@@ -288,7 +297,7 @@ class SettingsWindow(ResizableMixin):
         new_mappings = {}
 
         for btn_name, widgets in self._rows.items():
-            action = widgets["action_var"].get()
+            action = action_value(widgets["action_var"].get())
             key = widgets["key_var"].get().strip()
             if action in ("tap", "hold", "auto"):
                 if not key:
@@ -358,18 +367,18 @@ class SettingsWindow(ResizableMixin):
         self._win.destroy()
 
     def _reset_defaults(self) -> None:
-        from .constants import DEFAULT_CONFIGS, MAPPABLE_BUTTONS_BY_MODE
+        from .constants import DEFAULT_CONFIGS
 
         default_cfg = DEFAULT_CONFIGS.get(self._mode, {})
         defaults = default_cfg.get("mappings", {}).get("buttons", {})
-        mappable_buttons = MAPPABLE_BUTTONS_BY_MODE.get(self._mode, MAPPABLE_BUTTONS)
+        mappable_buttons = _mappable_buttons_for_mode(self._mode)
         for btn_name in mappable_buttons:
             mapping = defaults.get(btn_name, {})
             widgets = self._rows.get(btn_name)
             if not widgets:
                 continue
             action = mapping.get("action", "tap")
-            widgets["action_var"].set(action)
+            widgets["action_var"].set(action_label(action))
             if action in ("tap", "hold", "auto"):
                 widgets["key_var"].set(mapping.get("key", ""))
                 widgets["key_entry"].configure(state=NORMAL)
@@ -383,7 +392,7 @@ class SettingsWindow(ResizableMixin):
                 widgets["key_entry"].configure(state=DISABLED)
                 widgets["action_cb"].configure(state="readonly")
             else:
-                widgets["action_var"].set(action)
+                widgets["action_var"].set(action_label(action))
                 widgets["action_cb"].configure(state=DISABLED)
                 widgets["key_entry"].configure(state=DISABLED)
 

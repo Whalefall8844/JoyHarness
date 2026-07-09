@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "description": "Joy-Con R to keyboard mapping (macOS)",
+  "description": "Default Joy-Con R to keyboard mapping",
   "deadzone": 0.2,
   "poll_interval": 0.01,
   "stick_mode": "4dir",
@@ -8,70 +8,63 @@
   "keep_alive_enabled": true,
   "mappings": {
     "buttons": {
-      "A": {
+      "DPadDown": {
         "action": "tap",
         "key": "enter"
       },
-      "B": {
-        "action": "auto",
-        "key": "backspace",
-        "repeat": 100
-      },
-      "X": {
+      "DPadRight": {
         "action": "tap",
         "key": "escape"
       },
-      "Y": {
-        "action": "combination",
+      "DPadLeft": {
+        "action": "tap",
+        "key": "backspace"
+      },
+      "DPadUp": {
+        "action": "sequence",
         "keys": [
-          "cmd",
+          "alt",
           "tab"
-        ]
+        ],
+        "repeat": 500
       },
-      "R": {
-        "action": "exec",
-        "command": [
-          "open",
-          "-a",
-          "Mission Control"
-        ]
+      "L": {
+        "action": "window_switch"
       },
-      "ZR": {
-        "action": "hold",
-        "key": "alt_r"
+      "ZL": {
+        "action": "tap",
+        "key": "+"
       },
-      "Plus": {
-        "action": "hold",
-        "key": "cmd_r"
+      "Minus": {
+        "action": "tap",
+        "key": "+"
       },
-      "Home": {
-        "action": "combination",
-        "keys": [
-          "cmd",
-          "space"
-        ]
+      "Capture": {
+        "action": "tap",
+        "key": "print_screen"
       },
-      "RStick": {
+      "LStick": {
         "action": "tap",
         "key": "tab"
       },
       "SL": {
         "action": "hold",
-        "key": "cmd"
+        "key": "*"
       },
       "SR": {
-        "action": "window_switch"
+        "action": "tap",
+        "key": "-"
       }
     },
     "stick_directions": {
       "up": {
         "action": "auto",
-        "key": "down",
+        "key": "up",
         "repeat": 100
       },
       "down": {
         "action": "auto",
-        "key": "up",
+        "key": "down",
         "repeat": 100
       },
       "left": {
@@ -87,12 +80,17 @@
     }
   },
   "known_apps": {
-    "Ghostty": "Ghostty",
-    "微信": "微信",
-    "飞书": "飞书",
-    "反重力": "Antigravity"
+    "Doubao": "Doubao.exe",
+    "Chrome": "chrome.exe",
+    "Codex": "Codex.exe",
+    "WorkBuddy": "WorkBuddy.exe"
   },
-  "selected_apps": [],
+  "selected_apps": [
+    "Doubao.exe",
+    "chrome.exe",
+    "Codex.exe",
+    "WorkBuddy.exe"
+  ],
   "profiles": {
     "single_right": {
       "mappings": {
@@ -102,43 +100,67 @@
             "key": "enter"
           },
           "B": {
-            "action": "auto",
-            "key": "backspace",
-            "repeat": 100
-          },
-          "X": {
-            "action": "tap",
-            "key": "escape"
-          },
-          "Y": {
-            "action": "combination",
+            "action": "sequence",
             "keys": [
-              "cmd",
+              "shift",
               "tab"
             ]
           },
+          "X": {
+            "action": "auto",
+            "key": "f2"
+          },
+          "Y": {
+            "action": "sequence",
+            "keys": [
+              "alt",
+              "tab"
+            ],
+            "repeat": 500
+          },
           "R": {
-            "action": "exec",
-            "command": [
-              "open",
-              "-a",
-              "Mission Control"
-            ]
+            "action": "window_switch"
           },
           "ZR": {
-            "action": "hold",
-            "key": "alt_r"
+            "action": "macro",
+            "if_window": "code.exe",
+            "steps": [
+              {
+                "type": "combination",
+                "keys": [
+                  "ctrl",
+                  "shift",
+                  "p"
+                ]
+              },
+              {
+                "type": "delay",
+                "ms": 100
+              },
+              {
+                "type": "type",
+                "text": "Claude Code: Focus input"
+              },
+              {
+                "type": "delay",
+                "ms": 100
+              },
+              {
+                "type": "tap",
+                "key": "enter"
+              }
+            ]
           },
           "Plus": {
-            "action": "hold",
-            "key": "cmd_r"
-          },
-          "Home": {
             "action": "combination",
             "keys": [
-              "cmd",
-              "space"
+              "ctrl",
+              "s"
             ]
+          },
+          "Home": {
+            "action": "tap",
+            "key": "windows"
           },
           "RStick": {
             "action": "tap",
@@ -146,7 +168,7 @@
           },
           "SL": {
             "action": "hold",
-            "key": "cmd"
+            "key": "alt"
           },
           "SR": {
             "action": "window_switch"
@@ -179,46 +201,40 @@
     "single_left": {
       "mappings": {
         "buttons": {
-          "A": {
+          "DPadDown": {
             "action": "tap",
             "key": "enter"
           },
-          "B": {
+          "DPadRight": {
             "action": "tap",
             "key": "escape"
           },
-          "X": {
+          "DPadLeft": {
             "action": "tap",
             "key": "backspace"
           },
-          "Y": {
-            "action": "combination",
+          "DPadUp": {
+            "action": "sequence",
             "keys": [
-              "cmd",
+              "alt",
               "tab"
-            ]
+            ],
+            "repeat": 500
           },
           "L": {
             "action": "window_switch"
           },
           "ZL": {
-            "action": "hold",
-            "key": "cmd"
+            "action": "tap",
+            "key": "+"
           },
           "Minus": {
-            "action": "combination",
-            "keys": [
-              "cmd",
-              "s"
-            ]
+            "action": "tap",
+            "key": "+"
           },
           "Capture": {
-            "action": "combination",
-            "keys": [
-              "cmd",
-              "shift",
-              "3"
-            ]
+            "action": "tap",
+            "key": "print_screen"
           },
           "LStick": {
             "action": "tap",
@@ -226,28 +242,33 @@
           },
           "SL": {
             "action": "hold",
-            "key": "shift"
+            "key": "*"
           },
           "SR": {
-            "action": "window_switch"
+            "action": "tap",
+            "key": "-"
           }
         },
         "stick_directions": {
           "up": {
-            "action": "tap",
-            "key": "up"
+            "action": "auto",
+            "key": "up",
+            "repeat": 100
           },
           "down": {
-            "action": "tap",
-            "key": "down"
+            "action": "auto",
+            "key": "down",
+            "repeat": 100
           },
           "left": {
-            "action": "tap",
-            "key": "left"
+            "action": "auto",
+            "key": "left",
+            "repeat": 100
           },
           "right": {
-            "action": "tap",
-            "key": "right"
+            "action": "auto",
+            "key": "right",
+            "repeat": 100
           }
         }
       }
@@ -260,63 +281,83 @@
             "key": "enter"
           },
           "B": {
-            "action": "auto",
-            "key": "backspace",
-            "repeat": 100
-          },
-          "X": {
-            "action": "tap",
-            "key": "escape"
-          },
-          "Y": {
-            "action": "combination",
+            "action": "sequence",
             "keys": [
-              "cmd",
+              "shift",
               "tab"
             ]
           },
+          "X": {
+            "action": "auto",
+            "key": "f2"
+          },
+          "Y": {
+            "action": "sequence",
+            "keys": [
+              "alt",
+              "tab"
+            ],
+            "repeat": 500
+          },
           "R": {
-            "action": "exec",
-            "command": [
-              "open",
-              "-a",
-              "Mission Control"
-            ]
+            "action": "window_switch"
           },
           "ZR": {
-            "action": "hold",
-            "key": "alt_r"
+            "action": "macro",
+            "if_window": "code.exe",
+            "steps": [
+              {
+                "type": "combination",
+                "keys": [
+                  "ctrl",
+                  "shift",
+                  "p"
+                ]
+              },
+              {
+                "type": "delay",
+                "ms": 100
+              },
+              {
+                "type": "type",
+                "text": "Claude Code: Focus input"
+              },
+              {
+                "type": "delay",
+                "ms": 100
+              },
+              {
+                "type": "tap",
+                "key": "enter"
+              }
+            ]
           },
           "L": {
             "action": "hold",
-            "key": "cmd"
+            "key": "ctrl"
           },
           "ZL": {
             "action": "hold",
             "key": "shift"
           },
           "Plus": {
-            "action": "hold",
-            "key": "cmd_r"
+            "action": "combination",
+            "keys": [
+              "ctrl",
+              "s"
+            ]
           },
           "Minus": {
             "action": "tap",
             "key": "escape"
           },
           "Home": {
-            "action": "combination",
-            "keys": [
-              "cmd",
-              "space"
-            ]
+            "action": "tap",
+            "key": "windows"
           },
           "Capture": {
-            "action": "combination",
-            "keys": [
-              "cmd",
-              "shift",
-              "3"
-            ]
+            "action": "tap",
+            "key": "print_screen"
           },
           "RStick": {
             "action": "tap",
@@ -328,14 +369,14 @@
           },
           "SL_L": {
             "action": "hold",
-            "key": "cmd"
+            "key": "alt"
           },
           "SR_L": {
             "action": "window_switch"
           },
           "SL_R": {
             "action": "hold",
-            "key": "cmd"
+            "key": "alt"
           },
           "SR_R": {
             "action": "window_switch"
@@ -362,5 +403,5 @@
       }
     }
   },
-  "active_profile": "single_right"
+  "active_profile": "single_left"
 }

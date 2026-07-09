@@ -17,6 +17,7 @@ from .constants import (
     VALID_ACTIONS,
     BUTTON_NAMES,
     BUTTON_NAMES_BY_MODE,
+    LEFT_LEGACY_BUTTON_ALIASES,
     STICK_DIRECTIONS,
 )
 
@@ -25,6 +26,29 @@ logger = logging.getLogger(__name__)
 
 _CONFIG_DIR = Path(__file__).resolve().parent.parent / "config"
 USER_CONFIG_PATH = str(_CONFIG_DIR / "user.json")
+
+
+def _normalize_button_mappings_for_mode(mode: str, buttons: dict) -> dict:
+    if mode != "single_left":
+        return buttons
+
+    normalized = {}
+    for btn_name, mapping in buttons.items():
+        normalized[LEFT_LEGACY_BUTTON_ALIASES.get(btn_name, btn_name)] = mapping
+    return normalized
+
+
+def _normalize_stick_mappings_for_mode(mode: str, stick_directions: dict) -> dict:
+    if mode != "single_left":
+        return stick_directions
+
+    normalized = {}
+    for direction, mapping in stick_directions.items():
+        if mapping == {"action": "tap", "key": direction}:
+            normalized[direction] = {"action": "auto", "key": direction, "repeat": 100}
+        else:
+            normalized[direction] = mapping
+    return normalized
 
 
 def get_platform_config_path() -> str | None:
@@ -123,10 +147,12 @@ def merge_with_defaults(user_config: dict) -> dict:
             user_profile = user_config["profiles"].get(mode, {})
             user_mappings = user_profile.get("mappings", {})
             if "buttons" in user_mappings:
-                result["profiles"][mode]["mappings"]["buttons"].update(user_mappings["buttons"])
+                result["profiles"][mode]["mappings"]["buttons"].update(
+                    _normalize_button_mappings_for_mode(mode, user_mappings["buttons"])
+                )
             if "stick_directions" in user_mappings:
                 result["profiles"][mode]["mappings"]["stick_directions"].update(
-                    user_mappings["stick_directions"]
+                    _normalize_stick_mappings_for_mode(mode, user_mappings["stick_directions"])
                 )
 
         # Keep top-level mappings in sync with active_profile (for backward compat with code that reads config["mappings"])

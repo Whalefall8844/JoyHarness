@@ -9,6 +9,7 @@ from __future__ import annotations
 import threading
 import time
 import logging
+import math
 
 import pygame
 
@@ -26,6 +27,10 @@ logger = logging.getLogger(__name__)
 
 # Reconnection scan interval in seconds
 RECONNECT_INTERVAL = 2.0
+
+
+def _no_joystick_message() -> str:
+    return "未找到手柄。请确认 Joy-Con 已通过蓝牙连接。"
 
 
 def find_joycon(joystick_index: int | None = None) -> pygame.joystick.Joystick | None:
@@ -138,24 +143,25 @@ def run_discover_mode(joystick_index: int | None = None) -> None:
     js = find_joycon(joystick_index)
 
     if js is None:
-        print("No joystick found. Make sure your Joy-Con R is connected via Bluetooth.")
-        print("Tip: Windows Settings → Bluetooth → Add device → hold the small pairing")
-        print("     button on the Joy-Con rail for 3 seconds until lights flash.")
+        print(_no_joystick_message())
+        print("提示：打开 Windows 设置 → 蓝牙 → 添加设备，按住 Joy-Con 滑轨上的配对按钮")
+        print("      约 3 秒，直到指示灯快速闪烁。")
         pygame.quit()
         return
 
     # Use mode-aware button names for discover output
     mode = detect_connection_mode()
     btn_names = BUTTON_NAMES_BY_MODE.get(mode, BUTTON_NAMES)
+    from .labels import button_label, mode_label
 
-    print(f"\n=== Discovery Mode ===")
-    print(f"Controller: {js.get_name()}")
+    print(f"\n=== 发现模式 ===")
+    print(f"控制器：{js.get_name()}")
     print(f"GUID: {js.get_guid()}")
-    print(f"Buttons: {js.get_numbuttons()}")
-    print(f"Axes: {js.get_numaxes()}")
-    print(f"Connection mode: {mode}")
-    print(f"\nPress buttons and move sticks to see their indices.")
-    print(f"Press Ctrl+C to exit.\n")
+    print(f"按钮数量：{js.get_numbuttons()}")
+    print(f"轴数量：{js.get_numaxes()}")
+    print(f"连接模式：{mode_label(mode)} ({mode})")
+    print(f"\n按下按钮或移动摇杆，可查看原始索引。")
+    print(f"按 Ctrl+C 退出。\n")
 
     clock = pygame.time.Clock()
     prev_buttons: set[int] = set()
@@ -174,11 +180,11 @@ def run_discover_mode(joystick_index: int | None = None) -> None:
 
             for i in sorted(pressed):
                 name = btn_names.get(i, "???")
-                print(f"  BTN {i:2d} ({name:8s}) PRESSED")
+                print(f"  按钮 {i:2d} ({button_label(name):10s}) 按下")
 
             for i in sorted(released):
                 name = btn_names.get(i, "???")
-                print(f"  BTN {i:2d} ({name:8s}) released")
+                print(f"  按钮 {i:2d} ({button_label(name):10s}) 松开")
 
             prev_buttons = current_buttons
 
@@ -186,12 +192,12 @@ def run_discover_mode(joystick_index: int | None = None) -> None:
             for i in range(js.get_numaxes()):
                 val = js.get_axis(i)
                 if abs(val) > 0.1:
-                    print(f"  AXIS {i}: {val:+.3f}", end="\r")
+                    print(f"  轴 {i}: {val:+.3f}", end="\r")
 
             clock.tick(60)
 
     except KeyboardInterrupt:
-        print("\nDiscovery mode ended.")
+        print("\n发现模式已结束。")
     finally:
         pygame.quit()
 
@@ -201,6 +207,7 @@ def _calibrate_baseline(
     axis_x: int,
     axis_y: int,
     samples: int = 20,
+    max_magnitude: float | None = None,
 ) -> tuple[float, float]:
     """Read stick resting position and return average as baseline.
 
@@ -222,7 +229,17 @@ def _calibrate_baseline(
         total_y += joystick.get_axis(axis_y)
         clock.tick(100)
 
-    return (total_x / samples, total_y / samples)
+    baseline = (total_x / samples, total_y / samples)
+    if max_magnitude is not None:
+        magnitude = math.sqrt(baseline[0] * baseline[0] + baseline[1] * baseline[1])
+        if magnitude > max_magnitude:
+            logger.warning(
+                "Ignoring suspicious stick baseline: x=%.4f, y=%.4f, magnitude=%.4f exceeds %.4f",
+                baseline[0], baseline[1], magnitude, max_magnitude,
+            )
+            return (0.0, 0.0)
+
+    return baseline
 
 
 def run_polling_loop(
@@ -262,7 +279,7 @@ def run_polling_loop(
                 deadzone, poll_interval * 1000, stick_mode)
 
     # Calibrate baseline: average resting position over 10 samples
-    baseline_x, baseline_y = _calibrate_baseline(joystick, axis_x, axis_y)
+    baseline_x, baseline_y = _calibrate_baseline(joystick, axis_x, axis_y, max_magnitude=deadzone)
     logger.info("Stick baseline: x=%.4f, y=%.4f", baseline_x, baseline_y)
 
     try:
@@ -293,7 +310,7 @@ def run_polling_loop(
                 prev_buttons = set()
                 prev_direction = None
                 center_count = 0
-                baseline_x, baseline_y = _calibrate_baseline(joystick, axis_x, axis_y)
+                baseline_x, baseline_y = _calibrate_baseline(joystick, axis_x, axis_y, max_magnitude=deadzone)
                 logger.info("Reconnected: %s, baseline=(%.4f, %.4f)",
                             js.get_name(), baseline_x, baseline_y)
 

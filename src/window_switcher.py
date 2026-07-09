@@ -30,6 +30,15 @@ class WindowInfo(NamedTuple):
     app_name: str = ""  # Process/app name (used on macOS)
 
 
+def _matches_app_name(exe_name: str, app_names: list[str] | None) -> bool:
+    """Return whether a process/app name is in the configured target list."""
+    if app_names is None:
+        return True
+    if sys.platform == "win32":
+        return exe_name.lower() in {name.lower() for name in app_names}
+    return exe_name in app_names
+
+
 # ---------------------------------------------------------------------------
 # Platform: Windows
 # ---------------------------------------------------------------------------
@@ -88,7 +97,7 @@ if sys.platform == "win32":
             title = buf.value
 
             exe_name = _get_process_name(hwnd)
-            if app_names is None or exe_name in app_names:
+            if _matches_app_name(exe_name, app_names):
                 results.append(WindowInfo(hwnd, title, exe_name))
 
             return True
@@ -198,7 +207,7 @@ elif sys.platform == "darwin":
                 # Some apps (e.g. Chrome incognito, certain Electron apps) hide titles
                 # from CGWindowList for privacy. Fall back to the app name.
                 title = owner
-            if app_names is not None and owner not in app_names:
+            if not _matches_app_name(owner, app_names):
                 continue
             results.append(WindowInfo(pid, str(title), str(owner)))
         return results

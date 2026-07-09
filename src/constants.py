@@ -29,17 +29,18 @@ BTN_SR = 10     # SR (侧边右)
 BTN_ZR = 18     # ZR 扳机
 
 # === Left Joy-Con Button Indices (PLACEHOLDER — run --discover to calibrate) ===
-BTN_L_Y = 0       # Y
-BTN_L_B = 1       # B
-BTN_L_X = 2       # X
-BTN_L_A = 3       # A
-BTN_L_MINUS = 4   # - 按钮
+BTN_L_DPAD_DOWN = 0
+BTN_L_DPAD_LEFT = 1
+BTN_L_DPAD_RIGHT = 2
+BTN_L_DPAD_UP = 3
+BTN_L_UNKNOWN_4 = 4
 BTN_L_CAPTURE = 5 # Capture 按钮
-BTN_L_LSTICK = 6  # 左摇杆按下
+BTN_L_MINUS = 6   # - 按钮
+BTN_L_LSTICK = 7  # 左摇杆按下
 BTN_L_SL = 9      # SL
 BTN_L_SR = 10     # SR
-BTN_L_L = 16      # L 肩键
-BTN_L_ZL = 18     # ZL 扳机
+BTN_L_L = 17      # L 肩键
+BTN_L_ZL = 19     # ZL 扳机
 
 # === Dual Mode Button Indices (PLACEHOLDER — run --discover to calibrate) ===
 # In dual mode (L+R as combined SDL2 device), all buttons from both sides are available
@@ -93,10 +94,10 @@ BUTTON_INDICES: dict[str, int] = {v: k for k, v in BUTTON_NAMES.items()}
 
 # === Left Joy-Con Button Name Lookup ===
 BUTTON_NAMES_LEFT: dict[int, str] = {
-    BTN_L_A: "A",
-    BTN_L_B: "B",
-    BTN_L_X: "X",
-    BTN_L_Y: "Y",
+    BTN_L_DPAD_UP: "DPadUp",
+    BTN_L_DPAD_DOWN: "DPadDown",
+    BTN_L_DPAD_LEFT: "DPadLeft",
+    BTN_L_DPAD_RIGHT: "DPadRight",
     BTN_L_L: "L",
     BTN_L_ZL: "ZL",
     BTN_L_MINUS: "Minus",
@@ -106,6 +107,13 @@ BUTTON_NAMES_LEFT: dict[int, str] = {
     BTN_L_SR: "SR",
 }
 BUTTON_INDICES_LEFT: dict[str, int] = {v: k for k, v in BUTTON_NAMES_LEFT.items()}
+
+LEFT_LEGACY_BUTTON_ALIASES: dict[str, str] = {
+    "Y": "DPadUp",
+    "A": "DPadDown",
+    "X": "DPadLeft",
+    "B": "DPadRight",
+}
 
 # === Dual Mode Button Name Lookup ===
 BUTTON_NAMES_DUAL: dict[int, str] = {
@@ -145,7 +153,10 @@ BUTTON_INDICES_BY_MODE: dict[str, dict[str, int]] = {
 
 MAPPABLE_BUTTONS_BY_MODE: dict[str, tuple[str, ...]] = {
     "single_right": ("A", "B", "X", "Y", "R", "ZR", "Plus", "Home", "RStick", "SL", "SR"),
-    "single_left": ("A", "B", "X", "Y", "L", "ZL", "Minus", "Capture", "LStick", "SL", "SR"),
+    "single_left": (
+        "DPadUp", "DPadDown", "DPadLeft", "DPadRight",
+        "L", "ZL", "Minus", "Capture", "LStick", "SL", "SR",
+    ),
     "dual": ("A", "B", "X", "Y", "R", "ZR", "L", "ZL", "Plus", "Minus", "Home",
              "RStick", "LStick", "Capture", "SL_L", "SR_L", "SL_R", "SR_R"),
 }
@@ -205,10 +216,10 @@ DEFAULT_MAPPINGS: dict = {
 
 DEFAULT_MAPPINGS_LEFT: dict = {
     "buttons": {
-        "A":       {"action": "tap", "key": "enter"},
-        "B":       {"action": "tap", "key": "escape"},
-        "X":       {"action": "tap", "key": "backspace"},
-        "Y":       {"action": "sequence", "keys": ["alt", "tab"], "repeat": 500},
+        "DPadDown":  {"action": "tap", "key": "enter"},
+        "DPadRight": {"action": "tap", "key": "escape"},
+        "DPadLeft":  {"action": "tap", "key": "backspace"},
+        "DPadUp":    {"action": "sequence", "keys": ["alt", "tab"], "repeat": 500},
         "L":       {"action": "window_switch"},
         "ZL":      {"action": "hold", "key": "ctrl"},
         "Minus":   {"action": "combination", "keys": ["ctrl", "s"]},
@@ -218,10 +229,10 @@ DEFAULT_MAPPINGS_LEFT: dict = {
         "SR":      {"action": "window_switch"},
     },
     "stick_directions": {
-        "up":    {"action": "tap", "key": "up"},
-        "down":  {"action": "tap", "key": "down"},
-        "left":  {"action": "tap", "key": "left"},
-        "right": {"action": "tap", "key": "right"},
+        "up":    {"action": "auto", "key": "up", "repeat": 100},
+        "down":  {"action": "auto", "key": "down", "repeat": 100},
+        "left":  {"action": "auto", "key": "left", "repeat": 100},
+        "right": {"action": "auto", "key": "right", "repeat": 100},
     },
 }
 

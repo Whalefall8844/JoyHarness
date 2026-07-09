@@ -3,7 +3,7 @@
 Uses ttkbootstrap for a modern dark theme appearance.
 Provides controls for:
 - Enabling/disabling stick mapping
-- Selecting target applications for window switching (R key)
+- Selecting target applications for window switching
 
 Cross-platform: Windows and macOS.
 """
@@ -30,6 +30,16 @@ logger = logging.getLogger(__name__)
 _UI_FONT = "Helvetica" if sys.platform == "darwin" else "Microsoft YaHei UI"
 
 
+def _window_title(connection_mode: str) -> str:
+    from .labels import mode_label
+
+    return f"JoyHarness [{mode_label(connection_mode)}]"
+
+
+def _app_target_label(connection_mode: str) -> str:
+    return "窗口切换目标："
+
+
 class MainWindow(ResizableMixin):
     """Main application window for the Joy-Con mapper."""
 
@@ -54,7 +64,7 @@ class MainWindow(ResizableMixin):
         self._keep_alive_manager = keep_alive_manager
 
         self._root = ttk.Window(
-            title="NS Joy-Con R 键盘映射器",
+            title=_window_title(connection_mode),
             themename="darkly",
             size=(453, 450),
             resizable=(True, True),
@@ -82,11 +92,10 @@ class MainWindow(ResizableMixin):
         """Build the UI layout."""
         root = self._root
 
-        from .constants import MODE_LABELS
-        mode_label = MODE_LABELS.get(self._connection_mode, self._connection_mode)
+        title = _window_title(self._connection_mode)
 
         # On macOS, set the native window title instead
-        self._root.title(f"JoyHarness [{mode_label}]")
+        self._root.title(title)
 
         if self._frameless:
             # Custom title bar (draggable, with close & minimize buttons) — Windows only
@@ -95,7 +104,7 @@ class MainWindow(ResizableMixin):
 
             title_text = ttk.Label(
                 titlebar,
-                text=f"  JoyHarness [{mode_label}]",
+                text=f"  {title}",
                 font=(_UI_FONT, 12, "bold"),
                 bootstyle=INFO,
             )
@@ -144,7 +153,7 @@ class MainWindow(ResizableMixin):
         # Window switch app selection
         app_label = ttk.Label(
             main,
-            text="R 键窗口切换目标：",
+            text=_app_target_label(self._connection_mode),
             font=(_UI_FONT, 10),
         )
         app_label.pack(anchor=W, pady=(0, 6))
@@ -269,18 +278,17 @@ class MainWindow(ResizableMixin):
 
         Thread-safe: schedules the update on the tkinter main thread.
         """
-        from .constants import MODE_LABELS
         self._connection_mode = mode
-        mode_label = MODE_LABELS.get(mode, mode)
+        title = _window_title(mode)
 
         def _do_update():
-            self._root.title(f"JoyHarness [{mode_label}]")
+            self._root.title(title)
             if self._frameless:
                 for widget in self._root.winfo_children():
                     if isinstance(widget, ttk.Frame):
                         for child in widget.winfo_children():
                             if isinstance(child, ttk.Label) and "JoyHarness" in str(child.cget("text")):
-                                child.configure(text=f"  JoyHarness [{mode_label}]")
+                                child.configure(text=f"  {title}")
                                 return
 
         self._root.after(0, _do_update)

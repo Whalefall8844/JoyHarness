@@ -5,6 +5,8 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+release/
+*.spec
 *.egg
 
 # Virtual environments
@@ -15,6 +17,8 @@ env/
 # Runtime files
 calibration_result.json
 nsjc.log
+joyharness.log
+joyharness-rumble.log
 config/user.json
 
 # IDE / tooling

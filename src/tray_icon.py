@@ -52,6 +52,7 @@ def create_tray_icon(
     stop_event: threading.Event,
     on_show_mappings: Callable | None = None,
     on_show_window: Callable | None = None,
+    on_quit: Callable | None = None,
 ) -> pystray.Icon:
     """Create and return a system tray icon.
 
@@ -74,7 +75,7 @@ def create_tray_icon(
         menu_items.append(pystray.MenuItem("显示映射", on_show_mappings))
         menu_items.append(pystray.Menu.SEPARATOR)
 
-    menu_items.append(pystray.MenuItem("退出", _make_quit_handler(stop_event)))
+    menu_items.append(pystray.MenuItem("退出", _make_quit_handler(stop_event, on_quit=on_quit)))
 
     menu = pystray.Menu(*menu_items)
 
@@ -88,13 +89,15 @@ def create_tray_icon(
     return icon
 
 
-def _make_quit_handler(stop_event: threading.Event) -> Callable:
+def _make_quit_handler(stop_event: threading.Event, on_quit: Callable | None = None) -> Callable:
     """Create a quit menu handler that sets the stop event and stops the icon."""
 
     def quit_action(icon: pystray.Icon, item: pystray.MenuItem) -> None:
         logger.info("Quit requested from tray menu")
         icon.stop()
         stop_event.set()
+        if on_quit:
+            on_quit()
 
     return quit_action
 
