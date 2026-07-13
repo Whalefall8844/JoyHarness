@@ -53,6 +53,10 @@ if __package__ is None:
 # With this set, both Joy-Cons remain independent Joystick devices and
 # hidapi can concurrently read battery reports from each one.
 os.environ.setdefault("SDL_JOYSTICK_HIDAPI_COMBINE_JOY_CONS", "0")
+# Normal input mode does not need SDL haptics, and some Joy-Con drivers fail
+# while enabling vibration during Joystick construction.
+if "--rumble-test" not in sys.argv:
+    os.environ.setdefault("SDL_JOYSTICK_HAPTIC_AXES", "0")
 os.environ.setdefault("PYGAME_HIDE_SUPPORT_PROMPT", "1")
 _ensure_windows_font_repository_env()
 

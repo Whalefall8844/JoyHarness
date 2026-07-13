@@ -1,3 +1,4 @@
+import os
 import sys
 import unittest
 from unittest.mock import Mock, patch
@@ -6,6 +7,9 @@ from src.main import _get_pairing_instructions, _resolve_initial_joystick, _run_
 
 
 class MainStartupTest(unittest.TestCase):
+    def test_normal_startup_disables_sdl_haptic_axes(self) -> None:
+        self.assertEqual(os.environ.get("SDL_JOYSTICK_HAPTIC_AXES"), "0")
+
     def test_windows_pairing_instructions_are_not_right_only(self) -> None:
         with patch("src.main.sys.platform", "win32"):
             instructions = _get_pairing_instructions()

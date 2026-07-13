@@ -1,3 +1,16 @@
+# JoyHarness 打包版 vibration 初始化崩溃
+
+- [x] 定位崩溃栈：`find_joycon()` 打开 `pygame.joystick.Joystick(...)` 时 SDL 启用 vibration 失败。
+- [x] 增加启动环境变量回归测试，并确认修复前失败。
+- [x] 在普通启动路径导入 pygame 前禁用 SDL haptic axes 初始化。
+- [x] 跑定向测试、编译检查、依赖检查，并重新打包便携版。
+
+## Review
+
+- 根因：普通启动路径打开 Joy-Con 时，SDL/pygame 在 `Joystick(...)` 构造阶段尝试启用 vibration/haptics，当前驱动返回 `Couldn't enable vibration` 导致打包版直接退出。
+- 修复：普通运行在导入 pygame 前设置 `SDL_JOYSTICK_HAPTIC_AXES=0`，保留 Joy-Con HIDAPI 映射；显式 `--rumble-test` 不设置该 hint，仍可作为震动诊断入口。
+- 验证：31 个定向单元测试通过，`compileall` 通过，`pip check` 通过；新打包的 exe 启动 4 秒后仍在运行；已重新生成本地便携包。
+
 # JoyHarness L 短按窗口切换排查
 
 - [x] 采集 JoyHarness 日志中 `window_switch` 的目标应用和实际命中窗口。
