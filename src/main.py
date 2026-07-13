@@ -77,6 +77,7 @@ from .keep_alive import KeepAliveManager
 from .key_mapper import KeyMapper
 from .platform.permission import has_required_permissions, get_permission_warning
 from .rumble import test_pygame_rumble
+from .single_instance import acquire_single_instance
 from .tray_icon import create_tray_icon, run_tray
 
 logger = logging.getLogger(__name__)
@@ -315,10 +316,22 @@ def main() -> None:
         handlers=handlers,
     )
 
+    instance_lock = None
+    if not args.list_controls:
+        instance_lock = acquire_single_instance()
+        if not instance_lock.acquired:
+            logger.warning("JoyHarness is already running; exiting duplicate startup")
+            print("JoyHarness 已在运行，本次启动退出。")
+            return
+
     # One-shot rumble capability probe. Keep this independent from config/GUI.
     if args.rumble_test:
-        _run_rumble_test(args.joystick)
-        return
+        try:
+            _run_rumble_test(args.joystick)
+            return
+        finally:
+            if instance_lock:
+                instance_lock.release()
 
     # Permission check
     if not args.no_admin_warn and not has_required_permissions():
@@ -452,6 +465,8 @@ def main() -> None:
     key_mapper.release_all()
     pygame.joystick.quit()
     pygame.display.quit()
+    if instance_lock:
+        instance_lock.release()
     print("已干净退出，所有按键已释放。")
 
 

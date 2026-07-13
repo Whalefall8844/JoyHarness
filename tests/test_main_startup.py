@@ -61,13 +61,32 @@ class MainStartupTest(unittest.TestCase):
         with (
             patch.object(sys, "argv", ["python", "--rumble-test"]),
             patch("src.main._run_rumble_test") as rumble,
+            patch("src.main.acquire_single_instance") as acquire_lock,
             patch("src.main.load_config") as load_config,
             patch("src.main.has_required_permissions", return_value=True),
         ):
             main()
 
+        acquire_lock.assert_called_once()
         rumble.assert_called_once_with(None)
         load_config.assert_not_called()
+
+    def test_exits_before_config_when_another_instance_is_running(self) -> None:
+        lock = Mock()
+        lock.acquired = False
+        with (
+            patch.object(sys, "argv", ["python"]),
+            patch("src.main.acquire_single_instance", return_value=lock) as acquire_lock,
+            patch("src.main.load_config") as load_config,
+            patch("src.main.pygame.display.init") as display_init,
+            patch("builtins.print") as print_fn,
+        ):
+            main()
+
+        acquire_lock.assert_called_once()
+        load_config.assert_not_called()
+        display_init.assert_not_called()
+        print_fn.assert_any_call("JoyHarness 已在运行，本次启动退出。")
 
 
 if __name__ == "__main__":
