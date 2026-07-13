@@ -73,6 +73,7 @@ DEFAULT_DEADZONE = 0.2
 DIRECTION_THRESHOLD = 0.5
 POLL_INTERVAL = 0.01       # 100Hz polling
 SNAPBACK_FRAMES = 2        # Frames required at center before registering release
+STICK_ENTER_FRAMES = 2     # Frames required in one direction before dispatch
 
 # === Right Joy-Con Button Name Lookup ===
 BUTTON_NAMES: dict[int, str] = {

@@ -19,6 +19,7 @@ from .constants import (
     BUTTON_NAMES,
     BUTTON_NAMES_BY_MODE,
     SNAPBACK_FRAMES,
+    STICK_ENTER_FRAMES,
 )
 from .joystick_handler import apply_deadzone, get_direction
 from .key_mapper import KeyMapper
@@ -27,6 +28,53 @@ logger = logging.getLogger(__name__)
 
 # Reconnection scan interval in seconds
 RECONNECT_INTERVAL = 2.0
+
+
+class _StickDirectionDebouncer:
+    """Require stable stick samples before dispatching direction changes."""
+
+    def __init__(self, enter_frames: int = STICK_ENTER_FRAMES, release_frames: int = SNAPBACK_FRAMES) -> None:
+        self._enter_frames = max(1, enter_frames)
+        self._release_frames = max(1, release_frames)
+        self._active_direction: str | None = None
+        self._pending_direction: str | None = None
+        self._pending_count = 0
+        self._center_count = 0
+
+    def update(self, direction: str | None) -> tuple[str | None, str | None]:
+        if direction == self._active_direction:
+            self._pending_direction = None
+            self._pending_count = 0
+            self._center_count = 0
+            return (None, None)
+
+        if direction is None:
+            self._pending_direction = None
+            self._pending_count = 0
+            if self._active_direction is None:
+                self._center_count = 0
+                return (None, None)
+            self._center_count += 1
+            if self._center_count >= self._release_frames:
+                self._active_direction = None
+                self._center_count = 0
+                return ("centered", None)
+            return (None, None)
+
+        self._center_count = 0
+        if direction == self._pending_direction:
+            self._pending_count += 1
+        else:
+            self._pending_direction = direction
+            self._pending_count = 1
+
+        if self._pending_count >= self._enter_frames:
+            self._active_direction = direction
+            self._pending_direction = None
+            self._pending_count = 0
+            return ("direction", direction)
+
+        return (None, None)
 
 
 def _no_joystick_message() -> str:
@@ -267,8 +315,10 @@ def run_polling_loop(
 
     clock = pygame.time.Clock()
     prev_buttons: set[int] = set()
-    prev_direction: str | None = None
-    center_count: int = 0
+    stick_debouncer = _StickDirectionDebouncer(
+        enter_frames=config.get("stick_enter_frames", STICK_ENTER_FRAMES),
+        release_frames=SNAPBACK_FRAMES,
+    )
 
     # Connection mode tracking — check every 5 seconds
     current_mode = config.get("active_profile", "single_right")
@@ -308,8 +358,10 @@ def run_polling_loop(
                 # Re-initialize with the new joystick
                 joystick = js
                 prev_buttons = set()
-                prev_direction = None
-                center_count = 0
+                stick_debouncer = _StickDirectionDebouncer(
+                    enter_frames=config.get("stick_enter_frames", STICK_ENTER_FRAMES),
+                    release_frames=SNAPBACK_FRAMES,
+                )
                 baseline_x, baseline_y = _calibrate_baseline(joystick, axis_x, axis_y, max_magnitude=deadzone)
                 logger.info("Reconnected: %s, baseline=(%.4f, %.4f)",
                             js.get_name(), baseline_x, baseline_y)
@@ -356,16 +408,11 @@ def run_polling_loop(
             filt_x, filt_y = apply_deadzone(raw_x, raw_y, deadzone)
             direction = get_direction(filt_x, filt_y, stick_mode)
 
-            if direction != prev_direction:
-                if direction is None:
-                    center_count += 1
-                    if center_count >= SNAPBACK_FRAMES:
-                        key_mapper.stick_centered()
-                        prev_direction = None
-                else:
-                    center_count = 0
-                    key_mapper.stick_direction(direction)
-                    prev_direction = direction
+            event, stable_direction = stick_debouncer.update(direction)
+            if event == "centered":
+                key_mapper.stick_centered()
+            elif event == "direction" and stable_direction is not None:
+                key_mapper.stick_direction(stable_direction)
 
             # Periodic connection mode check (detect Joy-Con hot-plug changes)
             now = time.monotonic()
