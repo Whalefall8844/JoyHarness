@@ -49,7 +49,7 @@
       },
       "SL": {
         "action": "hold",
-        "key": "*"
+        "key": "right alt"
       },
       "SR": {
         "action": "tap",
@@ -69,12 +69,12 @@
       },
       "left": {
         "action": "auto",
-        "key": "left",
+        "key": "right",
         "repeat": 100
       },
       "right": {
         "action": "auto",
-        "key": "right",
+        "key": "left",
         "repeat": 100
       }
     }
@@ -242,7 +242,7 @@
           },
           "SL": {
             "action": "hold",
-            "key": "*"
+            "key": "right alt"
           },
           "SR": {
             "action": "tap",
@@ -262,12 +262,12 @@
           },
           "left": {
             "action": "auto",
-            "key": "left",
+            "key": "right",
             "repeat": 100
           },
           "right": {
             "action": "auto",
-            "key": "right",
+            "key": "left",
             "repeat": 100
           }
         }

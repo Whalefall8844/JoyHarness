@@ -289,12 +289,14 @@
             "key": "down"
           },
           "left": {
-            "action": "tap",
-            "key": "left"
+            "action": "auto",
+            "key": "right",
+            "repeat": 100
           },
           "right": {
-            "action": "tap",
-            "key": "right"
+            "action": "auto",
+            "key": "left",
+            "repeat": 100
           }
         }
       }

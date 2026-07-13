@@ -77,11 +77,10 @@ class LeftModeUITest(unittest.TestCase):
 
         self.assertTrue({"DPadUp", "DPadDown", "DPadLeft", "DPadRight"}.issubset(buttons))
         self.assertFalse({"A", "B", "X", "Y"} & set(buttons))
-        for direction in ("up", "down", "left", "right"):
-            self.assertEqual(
-                stick_directions[direction],
-                {"action": "auto", "key": direction, "repeat": 100},
-            )
+        self.assertEqual(stick_directions["up"], {"action": "auto", "key": "up", "repeat": 100})
+        self.assertEqual(stick_directions["down"], {"action": "auto", "key": "down", "repeat": 100})
+        self.assertEqual(stick_directions["left"], {"action": "auto", "key": "right", "repeat": 100})
+        self.assertEqual(stick_directions["right"], {"action": "auto", "key": "left", "repeat": 100})
 
     def test_old_left_abxy_config_is_migrated_to_direction_pad_labels(self) -> None:
         old_config = {

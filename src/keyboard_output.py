@@ -129,11 +129,27 @@ if sys.platform == "darwin":
 else:
     import keyboard as _keyboard
 
+    _WINDOWS_KEY_ALIASES = {
+        "right alt": 57400,
+        "right_alt": 57400,
+        "alt_r": 57400,
+        "right ctrl": 57373,
+        "right control": 57373,
+        "right_ctrl": 57373,
+        "right_control": 57373,
+        "ctrl_r": 57373,
+        "control_r": 57373,
+    }
+
+    def _resolve_key(key_name: str):
+        lower = key_name.lower().strip()
+        return _WINDOWS_KEY_ALIASES.get(lower, key_name)
+
     def _do_press(key_name: str) -> None:
-        _keyboard.press(key_name)
+        _keyboard.press(_resolve_key(key_name))
 
     def _do_release(key_name: str) -> None:
-        _keyboard.release(key_name)
+        _keyboard.release(_resolve_key(key_name))
 
     def _do_type_text(text: str) -> None:
         _keyboard.write(text)
@@ -141,7 +157,7 @@ else:
     def is_valid_key(key_name: str) -> bool:
         """Check if a key name is recognized by the keyboard library."""
         try:
-            codes = _keyboard.key_to_scan_codes(key_name)
+            codes = _keyboard.key_to_scan_codes(_resolve_key(key_name))
             return len(codes) > 0
         except (ValueError, KeyError):
             return False

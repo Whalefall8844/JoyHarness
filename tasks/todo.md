@@ -1,3 +1,35 @@
+# JoyHarness 单实例启动防重复任务
+
+- [x] 确认当前 Windows venv 启动会保留一个无窗口 launcher 进程，实际 GUI 在子进程中运行。
+- [x] 增加单实例锁测试，覆盖第一次获取成功、第二次获取失败。
+- [x] 增加主流程启动守卫测试，覆盖拿不到锁时不加载配置、不初始化手柄。
+- [x] 实现跨平台单实例锁，并接入 `main()`。
+- [x] 跑定向测试、编译检查、依赖检查，并用真实启动验证第二次启动会退出。
+
+## Review
+
+- 修复：新增 `src/single_instance.py`，Windows 使用本机命名 mutex，非 Windows 使用临时目录文件锁。
+- 接入：`main()` 在访问 Joy-Con 前获取锁；拿不到锁时打印“JoyHarness 已在运行，本次启动退出。”并返回。
+- 例外：`--list-controls` 不访问手柄，保留无锁读取配置。
+- 验证：37 个定向单元测试通过，`compileall` 通过，`pip check` 通过；真实运行时再次执行 `python -m src` 会立即退出，且只保留一个 JoyHarness GUI/controller 实例。
+
+
+# JoyHarness SL 右 Alt 和左手柄摇杆左右反向
+
+- [x] 确认当前 `config/user.json` 已把左手柄 `SL` 配成 `right alt`。
+- [x] 确认 Windows `keyboard` 后端不识别 `alt_r` / `ctrl_r`，但识别 `right alt` / `right ctrl`。
+- [x] 增加 Windows 按键别名回归测试，覆盖 `alt_r -> right alt`、`ctrl_r -> right ctrl`。
+- [x] 修复 Windows 按键名归一化，避免右侧修饰键写法不一致导致失效。
+- [x] 修正左手柄当前摇杆左右映射，并跑定向测试、编译检查。
+
+## Review
+
+- 根因：Windows `keyboard.press("right alt")` 会经由 `key_to_scan_codes("right alt")` 得到多个扫描码，并实际取第一个 `56`，等价于左 Alt；必须直接发送右 Alt 扩展扫描码 `57400`。
+- 修复：Windows 后端将 `right alt` / `alt_r` 统一成 `57400`，将 `right ctrl` / `ctrl_r` 统一成 `57373`；当前左手柄 `SL` 保持 `right alt` 配置。
+- 摇杆：当前 `single_left` 配置和左手柄默认映射已将物理左/右对调，匹配你的实测方向。
+- 验证：34 个定向单元测试通过，`config/user.json` 加载后当前 active profile 值正确，`compileall` 和 `pip check` 通过。
+
+
 # JoyHarness 打包版 vibration 初始化崩溃
 
 - [x] 定位崩溃栈：`find_joycon()` 打开 `pygame.joystick.Joystick(...)` 时 SDL 启用 vibration 失败。

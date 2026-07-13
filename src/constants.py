@@ -231,8 +231,8 @@ DEFAULT_MAPPINGS_LEFT: dict = {
     "stick_directions": {
         "up":    {"action": "auto", "key": "up", "repeat": 100},
         "down":  {"action": "auto", "key": "down", "repeat": 100},
-        "left":  {"action": "auto", "key": "left", "repeat": 100},
-        "right": {"action": "auto", "key": "right", "repeat": 100},
+        "left":  {"action": "auto", "key": "right", "repeat": 100},
+        "right": {"action": "auto", "key": "left", "repeat": 100},
     },
 }
 
