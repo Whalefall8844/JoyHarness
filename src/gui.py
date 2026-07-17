@@ -20,6 +20,7 @@ from ttkbootstrap.constants import (
 )
 
 from .battery_reader import BatteryReader
+from . import autostart
 from .config_loader import save_config
 from .key_mapper import KeyMapper
 from .resizable import ResizableMixin
@@ -150,6 +151,17 @@ class MainWindow(ResizableMixin):
         )
         keep_alive_cb.pack(anchor=W, pady=(0, 12))
 
+        if autostart.is_supported():
+            self._autostart_var = ttk.BooleanVar(value=self._config.get("autostart_enabled", False))
+            autostart_cb = ttk.Checkbutton(
+                main,
+                text="  开机自启后台常驻",
+                variable=self._autostart_var,
+                command=self._on_autostart_toggle,
+                bootstyle=SUCCESS,
+            )
+            autostart_cb.pack(anchor=W, pady=(0, 12))
+
         # Window switch app selection
         app_label = ttk.Label(
             main,
@@ -247,6 +259,19 @@ class MainWindow(ResizableMixin):
             self._keep_alive_manager.set_enabled(enabled)
         logger.info("Keep-alive %s", "enabled" if enabled else "disabled")
 
+    def _on_autostart_toggle(self) -> None:
+        """Handle Windows startup toggle."""
+        enabled = self._autostart_var.get()
+        self._config["autostart_enabled"] = enabled
+        try:
+            autostart.set_autostart_enabled(enabled)
+            save_config(self._config)
+            logger.info("Autostart %s", "enabled" if enabled else "disabled")
+        except OSError:
+            self._autostart_var.set(not enabled)
+            self._config["autostart_enabled"] = not enabled
+            logger.exception("Failed to update autostart")
+
     def _build_app_checkboxes(self) -> None:
         """Build/refresh app checkboxes from KNOWN_APPS."""
         # Clear existing
@@ -337,6 +362,10 @@ class MainWindow(ResizableMixin):
 
     def _on_minimize_click(self) -> None:
         """Minimize to system tray."""
+        self.minimize_to_tray()
+
+    def minimize_to_tray(self) -> None:
+        """Hide the main window while keeping tray/background services alive."""
         self._root.withdraw()
         if self._on_minimize:
             self._on_minimize()

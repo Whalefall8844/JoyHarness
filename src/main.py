@@ -177,6 +177,7 @@ def build_parser() -> argparse.ArgumentParser:
   python -m src --config custom.json  # 使用自定义配置
   python -m src --deadzone 0.2        # 临时覆盖摇杆死区
   python -m src --list-controls       # 显示当前映射
+  python -m src --minimized           # 启动后隐藏到托盘
         """,
         add_help=False,
     )
@@ -219,6 +220,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--rumble-test",
         action="store_true",
         help="检测当前 Joy-Con 是否支持 pygame rumble 震动",
+    )
+    parser.add_argument(
+        "--minimized",
+        action="store_true",
+        help="启动后隐藏主窗口，后台/托盘常驻",
     )
     parser.add_argument(
         "--verbose", "-v",
@@ -446,6 +452,9 @@ def main() -> None:
         )
         tray_thread = threading.Thread(target=run_tray, args=(icon,), daemon=True)
         tray_thread.start()
+
+    if args.minimized:
+        gui.minimize_to_tray()
 
     if sys.platform == "darwin":
         print("界面已启动。关闭窗口即可退出。")

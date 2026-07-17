@@ -38,6 +38,11 @@ class MainStartupTest(unittest.TestCase):
 
         self.assertTrue(args.rumble_test)
 
+    def test_parser_accepts_minimized_flag(self) -> None:
+        args = build_parser().parse_args(["--minimized"])
+
+        self.assertTrue(args.minimized)
+
     def test_run_rumble_test_uses_current_joycon_once(self) -> None:
         joystick = Mock()
         with (

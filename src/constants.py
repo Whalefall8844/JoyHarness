@@ -284,6 +284,7 @@ DEFAULT_CONFIG: dict = {
     "stick_mode": "4dir",
     "stick_enabled": True,
     "keep_alive_enabled": True,
+    "autostart_enabled": False,
     "mappings": DEFAULT_MAPPINGS,
 }
 
@@ -295,6 +296,7 @@ DEFAULT_CONFIG_LEFT: dict = {
     "stick_mode": "4dir",
     "stick_enabled": True,
     "keep_alive_enabled": True,
+    "autostart_enabled": False,
     "mappings": DEFAULT_MAPPINGS_LEFT,
 }
 
@@ -306,6 +308,7 @@ DEFAULT_CONFIG_DUAL: dict = {
     "stick_mode": "4dir",
     "stick_enabled": True,
     "keep_alive_enabled": True,
+    "autostart_enabled": False,
     "mappings": DEFAULT_MAPPINGS_DUAL,
 }
 

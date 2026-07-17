@@ -1,3 +1,18 @@
+# JoyHarness 开机自启后台常驻和便携版重打包
+
+- [x] 设计方案：用户级 HKCU Run 开关，自启使用 `--minimized` 后台/托盘常驻。
+- [x] 新增自启模块测试：源码版命令、打包版命令、注册表启停。
+- [x] 接入 CLI `--minimized` 和主窗口自启开关。
+- [x] 验证测试、编译、依赖检查。
+- [x] 重新打包 `release/JoyHarness-windows-x64-portable.zip`。
+
+## Review
+
+- 新增主窗口「开机自启后台常驻」开关：启用时写入当前用户 HKCU Run，关闭时删除该启动项，无需管理员权限。
+- 新增 `--minimized` 启动参数：自启时隐藏主窗口并进入后台/托盘常驻；`start.vbs` 已透传该参数，便携打包版使用 exe 直启参数。
+- 验证：49 个定向单元测试通过，`compileall` 通过，`pip check` 通过；打包版 `JoyHarness.exe --minimized` 冒烟启动成功。
+- 产物：已重新生成 `release/JoyHarness-windows-x64-portable.zip`，大小 27,812,290 bytes。
+
 # JoyHarness 摇杆偶发自主触发排查
 
 - [x] 查看当前日志：启动基线 `x=-0.0000, y=0.0178`，未显示持续漂移。

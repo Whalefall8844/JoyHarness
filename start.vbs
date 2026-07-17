@@ -9,5 +9,9 @@ If Not Fso.FileExists(PythonExe) Then
 End If
 
 LogPath = AppDir & "\joyharness.log"
+Args = ""
+For I = 0 To WScript.Arguments.Count - 1
+  Args = Args & " " & WScript.Arguments(I)
+Next
 
-WshShell.Run "cmd /c cd /d """ & AppDir & """ && """ & PythonExe & """ -u -m src > """ & LogPath & """ 2>&1", 0, False
+WshShell.Run "cmd /c cd /d """ & AppDir & """ && """ & PythonExe & """ -u -m src" & Args & " > """ & LogPath & """ 2>&1", 0, False
